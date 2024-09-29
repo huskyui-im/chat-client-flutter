@@ -1,7 +1,8 @@
+import 'package:chat_client/websocket.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:web_socket_channel/web_socket_channel.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -29,7 +30,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _token;
 
@@ -56,10 +56,9 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(
             builder: (context) => MultiGroupChatPage(token: _token!)),
       );
-    }else{
+    } else {
       _showError("请输入用户信息");
     }
-
   }
 
   // 显示错误信息
@@ -122,7 +121,6 @@ class MultiGroupChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<MultiGroupChatPage> {
-  late WebSocketChannel _channel;
   final TextEditingController _messageController = TextEditingController();
   List<String> _messages = [];
   String _currentGroup = 'group1'; // 默认群组
@@ -135,109 +133,60 @@ class _ChatPageState extends State<MultiGroupChatPage> {
   @override
   void initState() {
     super.initState();
-
-    // 使用获取到的 token 连接 WebSocket
-    _channel = WebSocketChannel.connect(
-      Uri.parse('ws://192.168.3.4:8888/ws?token=${widget.token}'),
-    );
-
-    // 监听 WebSocket 消息
-    _channel.stream.listen((message) {
-      final data = json.decode(message);
-      String group = data['group'];
-      String msg = data['msg'];
-      if (_groupMessages.containsKey(group)) {
-        setState(() {
-          _groupMessages[group]!.add(msg);
-        });
-      }
-    });
+    WebSocketManager().connect('ws://127.0.0.1:8888/ws?token=${widget.token}');
   }
 
   @override
   void dispose() {
-    _channel.sink.close();
     super.dispose();
-  }
-
-  // 发送消息
-  void _sendMessage() {
-    String msg = _messageController.text;
-    if (msg.isNotEmpty) {
-      final data = {
-        'group': _currentGroup,
-        'msg':msg
-      };
-
-      _channel.sink.add(json.encode(data));
-      _messageController.clear();
-    }
   }
 
   // 切换群组
   void _switchGroup(String group) {
+    _toastMsg('选择群组$group');
     setState(() {
       _currentGroup = group;
       _messages = _groupMessages[group]!;
     });
   }
 
+  void _toastMsg(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg),
+          duration: Duration(seconds: 2),));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Multi-Group Chat'),
+        title: Text("群组"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             // 群组切换按钮
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () => _switchGroup('group1'),
-                  child: Text('Group 1'),
-                ),
-                ElevatedButton(
-                  onPressed: () => _switchGroup('group2'),
-                  child: Text('Group 2'),
-                ),
-                ElevatedButton(
-                  onPressed: () => _switchGroup('group3'),
-                  child: Text('Group 3'),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            Text('Current Group: $_currentGroup', style: TextStyle(fontSize: 18)),
-            SizedBox(height: 10),
             Expanded(
-              child: ListView.builder(
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(_messages[index]),
-                  );
-                },
-              ),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: InputDecoration(
-                      labelText: 'Send a message...',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: _sendMessage,
-                ),
-              ],
+                child: ListView.builder(
+                  itemCount: _groupMessages.length,
+                  itemBuilder: (context, index) {
+                    String group = _groupMessages.keys.elementAt(index);
+                    return Card(
+                      elevation: 4,
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      child: ListTile(
+                        contentPadding: EdgeInsets.all(16),
+                        title: Text(
+                          group,
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        trailing: Icon(Icons.arrow_forward),
+                        onTap: () => _switchGroup(group),
+                      ),
+                    );
+                  },
+                )
             ),
           ],
         ),
