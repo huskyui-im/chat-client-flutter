@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:logger/logger.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -32,32 +34,54 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   bool _isLoading = false;
   String? _token;
+  final logger = Logger();
 
   // 登录请求
-  Future<void> _login() async {
-    final tokenText = _usernameController.text;
-    final token = tokenText;
 
+  Future<void> _login() async {
+    final username = _usernameController.text;
+    if(username.isEmpty){
+      _showError("请输入用户名");
+      return;
+    }
     setState(() {
       _isLoading = true;
     });
-
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (token != '') {
-      setState(() {
-        _token = token;
-      });
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => MultiGroupChatPage(token: _token!)),
+    try {
+      final response = await http.post(
+        Uri.parse("http://192.168.3.4:8080/auth/login"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'username':username}),
       );
-    } else {
-      _showError("请输入用户信息");
+      logger.d(response);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final token = data['data'];
+        setState(() {
+          _token = token;
+        });
+        _showError("登录成功$token");
+      }else{
+        _showError("登录失败");
+      }
+
+        //
+        //
+        //
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => MultiGroupChatPage(token: _token!)),
+        );
+
+    }catch(e){
+      print(e.toString());
+    } finally{
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
