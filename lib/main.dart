@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:logger/logger.dart';
 
+import 'ChatPage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -40,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     final username = _usernameController.text;
-    if(username.isEmpty){
+    if (username.isEmpty) {
       _showError("请输入用户名");
       return;
     }
@@ -51,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
       final response = await http.post(
         Uri.parse("http://192.168.3.4:8080/auth/login"),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username':username}),
+        body: jsonEncode({'username': username}),
       );
       logger.d(response);
 
@@ -62,23 +63,22 @@ class _LoginPageState extends State<LoginPage> {
           _token = token;
         });
         _showError("登录成功$token");
-      }else{
+      } else {
         _showError("登录失败");
       }
 
-        //
-        //
-        //
+      //
+      //
+      //
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => MultiGroupChatPage(token: _token!)),
-        );
-
-    }catch(e){
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => MultiGroupChatPage(token: _token!)),
+      );
+    } catch (e) {
       print(e.toString());
-    } finally{
+    } finally {
       setState(() {
         _isLoading = false;
       });
@@ -125,8 +125,7 @@ class _LoginPageState extends State<LoginPage> {
               SizedBox(height: 20),
               _isLoading
                   ? CircularProgressIndicator()
-                  : ElevatedButton(
-                  onPressed: _login, child: Text('Login')),
+                  : ElevatedButton(onPressed: _login, child: Text('Login')),
             ],
           ),
         ),
@@ -157,7 +156,8 @@ class _ChatPageState extends State<MultiGroupChatPage> {
   @override
   void initState() {
     super.initState();
-    WebSocketManager().connect('ws://127.0.0.1:8888/ws?token=${widget.token}');
+    WebSocketManager()
+        .connect('ws://192.168.3.4:8888/ws?token=${widget.token}');
   }
 
   @override
@@ -167,17 +167,18 @@ class _ChatPageState extends State<MultiGroupChatPage> {
 
   // 切换群组
   void _switchGroup(String group) {
-    _toastMsg('选择群组$group');
-    setState(() {
-      _currentGroup = group;
-      _messages = _groupMessages[group]!;
-    });
+    // 导航到聊天页面
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ChatPage(group: group,)),
+    );
   }
 
   void _toastMsg(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg),
-          duration: Duration(seconds: 2),));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      duration: Duration(seconds: 2),
+    ));
   }
 
   @override
@@ -193,25 +194,25 @@ class _ChatPageState extends State<MultiGroupChatPage> {
             // 群组切换按钮
             Expanded(
                 child: ListView.builder(
-                  itemCount: _groupMessages.length,
-                  itemBuilder: (context, index) {
-                    String group = _groupMessages.keys.elementAt(index);
-                    return Card(
-                      elevation: 4,
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      child: ListTile(
-                        contentPadding: EdgeInsets.all(16),
-                        title: Text(
-                          group,
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        trailing: Icon(Icons.arrow_forward),
-                        onTap: () => _switchGroup(group),
-                      ),
-                    );
-                  },
-                )
-            ),
+              itemCount: _groupMessages.length,
+              itemBuilder: (context, index) {
+                String group = _groupMessages.keys.elementAt(index);
+                return Card(
+                  elevation: 4,
+                  margin: EdgeInsets.symmetric(vertical: 8),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.all(8),
+                    title: Text(
+                      group,
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    trailing: Icon(Icons.arrow_forward),
+                    onTap: () => _switchGroup(group),
+                  ),
+                );
+              },
+            )),
           ],
         ),
       ),

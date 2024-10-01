@@ -22,8 +22,9 @@ class WebSocketManager {
   }
 
 
-  void sendMessage(String group,String message){
+  void sendMessage(int opType,String group,String message){
     final msg = {
+      "opType":opType,
       "group":group,
       "message":message
     };
