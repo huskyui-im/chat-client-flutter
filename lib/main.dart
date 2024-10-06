@@ -1,3 +1,4 @@
+import 'package:chat_client/CreateGroup.dart';
 import 'package:chat_client/websocket.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -144,20 +145,15 @@ class MultiGroupChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<MultiGroupChatPage> {
-  final TextEditingController _messageController = TextEditingController();
-  List<String> _messages = [];
-  String _currentGroup = 'group1'; // 默认群组
-  Map<String, List<String>> _groupMessages = {
-    'group1': [],
-    'group2': [],
-    'group3': [],
-  };
+   List<String> _groupMessages = [];
 
   @override
   void initState() {
     super.initState();
-    WebSocketManager()
-        .connect('ws://192.168.3.4:8888/ws?token=${widget.token}');
+    // init webSocket instance
+    WebSocketManager().connect('ws://192.168.3.4:8888/ws?token=${widget.token}');
+    // fetch group list
+
   }
 
   @override
@@ -170,23 +166,34 @@ class _ChatPageState extends State<MultiGroupChatPage> {
     // 导航到聊天页面
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ChatPage(group: group,)),
+      MaterialPageRoute(
+          builder: (context) => ChatPage(
+                group: group,
+              )),
     );
   }
 
-  void _toastMsg(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-      duration: Duration(seconds: 2),
-    ));
+  void _createGroup(){
+    // 导航到聊天页面
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => CreateGroupWidget()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("群组"),
-      ),
+      appBar: AppBar(title: Text("群组"),
+          actions: <Widget>[
+        IconButton(
+          icon: const Icon(Icons.add_circle_outline),
+          onPressed: () {
+           _createGroup();
+          },
+        )
+      ]),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -196,7 +203,7 @@ class _ChatPageState extends State<MultiGroupChatPage> {
                 child: ListView.builder(
               itemCount: _groupMessages.length,
               itemBuilder: (context, index) {
-                String group = _groupMessages.keys.elementAt(index);
+                String group = _groupMessages.elementAt(index);
                 return Card(
                   elevation: 4,
                   margin: EdgeInsets.symmetric(vertical: 8),

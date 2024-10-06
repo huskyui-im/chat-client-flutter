@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:chat_client/OpTypeConstants.dart';
 import 'package:chat_client/websocket.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +8,7 @@ import 'package:logger/logger.dart';
 class ChatPage extends StatefulWidget {
   final String group;
 
-  ChatPage({required this.group});
+  ChatPage({super.key, required this.group});
 
   List<String> _messageList = [];
 
@@ -32,7 +34,13 @@ class _ChatPageState extends State<ChatPage> {
     _webSocketManager.sendMessage(OpTypeConstants.JOIN_GROUP,widget.group,"");
 
     _webSocketManager.messageStream.listen((message){
-      logger.d("listen message:"+message);
+      if(mounted) {
+        setState(() {
+          final jsonMessage = json.decode(message);
+          final messageValue = jsonMessage['message'];
+          _messageList.add(messageValue); // 本地添加消息到列表
+        });
+      }
     });
   }
 
@@ -85,10 +93,7 @@ class _ChatPageState extends State<ChatPage> {
   void _sendMessage() {
     final text = _controller.text;
     if (text.isNotEmpty) {
-      // _webSocketManager.sendMessage(widget.group, text);  // 发送消息到服务器
-      setState(() {
-        _messageList.add('我: $text');  // 本地添加消息到列表
-      });
+      _webSocketManager.sendMessage(OpTypeConstants.SEND_MSG,widget.group, text);  // 发送消息到服务器
       _controller.clear();  // 清空输入框
     }
   }
