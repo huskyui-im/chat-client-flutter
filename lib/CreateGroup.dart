@@ -49,6 +49,33 @@ class _CreateGroupState extends State<CreateGroupWidget> {
 
   void _createGroup(){
     String groupName = _groupNameController.text;
+    if(groupName.isEmpty){
+      _showError("群名为空");
+      return;
+    }
     webSocketManager.sendMessage(OpTypeConstants.CREATE_GROUP, groupName, "");
+    // 在这里执行返回操作
+    Navigator.pop(context);
+  }
+
+  // 显示错误信息
+  void _showError(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        );
+      },
+    );
   }
 }

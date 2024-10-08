@@ -147,14 +147,17 @@ class MultiGroupChatPage extends StatefulWidget {
 class _ChatPageState extends State<MultiGroupChatPage> {
    List<String> _groupMessages = [];
 
+   final logger = Logger();
+
   @override
   void initState() {
     super.initState();
     // init webSocket instance
     WebSocketManager().connect('ws://192.168.3.4:8888/ws?token=${widget.token}');
     // fetch group list
-
+    _fetchGroupList();
   }
+   // 登录请求
 
   @override
   void dispose() {
@@ -225,4 +228,24 @@ class _ChatPageState extends State<MultiGroupChatPage> {
       ),
     );
   }
+
+   Future<void> _fetchGroupList() async {
+     try {
+       final response = await http.get(
+         Uri.parse("http://192.168.3.4:8080/group/list"),
+       );
+       logger.d(response);
+
+       if (response.statusCode == 200) {
+         final data = jsonDecode(response.body);
+         logger.d(data);
+         List<dynamic> groupList = data['data'];
+         setState(() {
+           _groupMessages = groupList.cast<String>();
+         });
+       }
+     } catch (e) {
+       print(e.toString());
+     } finally {}
+   }
 }
