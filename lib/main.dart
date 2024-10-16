@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.3.4:8080/auth/login"),
+        Uri.parse("http://106.15.46.229:8080/auth/login"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': username}),
       );
@@ -153,7 +153,7 @@ class _ChatPageState extends State<MultiGroupChatPage> {
   void initState() {
     super.initState();
     // init webSocket instance
-    WebSocketManager().connect('ws://192.168.3.4:8888/ws?token=${widget.token}');
+    WebSocketManager().connect('ws://106.15.46.229:8888/ws?token=${widget.token}');
     // fetch group list
     _fetchGroupList();
   }
@@ -232,12 +232,12 @@ class _ChatPageState extends State<MultiGroupChatPage> {
    Future<void> _fetchGroupList() async {
      try {
        final response = await http.get(
-         Uri.parse("http://192.168.3.4:8080/group/list"),
+         Uri.parse("http://106.15.46.229:8080/group/list"),
        );
        logger.d(response);
 
        if (response.statusCode == 200) {
-         final data = jsonDecode(response.body);
+         final data = jsonDecode(const Utf8Decoder().convert(response.bodyBytes));
          logger.d(data);
          List<dynamic> groupList = data['data'];
          setState(() {
