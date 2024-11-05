@@ -55,7 +55,7 @@ class _CreateGroupState extends State<CreateGroupWidget> {
     }
     webSocketManager.sendMessage(OpTypeConstants.CREATE_GROUP, groupName, "");
     // 在这里执行返回操作
-    Navigator.pop(context);
+    Navigator.pop(context,true);
   }
 
   // 显示错误信息

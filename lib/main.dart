@@ -1,3 +1,4 @@
+import 'package:chat_client/ConfigConstants.dart';
 import 'package:chat_client/CreateGroup.dart';
 import 'package:chat_client/websocket.dart';
 import 'package:flutter/material.dart';
@@ -51,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       final response = await http.post(
-        Uri.parse("http://106.15.46.229:8080/auth/login"),
+        Uri.parse("http://$ip:8080/auth/login"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': username}),
       );
@@ -63,22 +64,16 @@ class _LoginPageState extends State<LoginPage> {
         setState(() {
           _token = token;
         });
-        _showError("登录成功$token");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => MultiGroupChatPage(token: _token!)),
+        );
       } else {
         _showError("登录失败");
       }
-
-      //
-      //
-      //
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => MultiGroupChatPage(token: _token!)),
-      );
     } catch (e) {
-      print(e.toString());
+      _showError(e.toString());
     } finally {
       setState(() {
         _isLoading = false;
@@ -153,7 +148,7 @@ class _ChatPageState extends State<MultiGroupChatPage> {
   void initState() {
     super.initState();
     // init webSocket instance
-    WebSocketManager().connect('ws://106.15.46.229:8888/ws?token=${widget.token}');
+    WebSocketManager().connect('ws://$ip:8888/ws?token=${widget.token}');
     // fetch group list
     _fetchGroupList();
   }
@@ -176,13 +171,16 @@ class _ChatPageState extends State<MultiGroupChatPage> {
     );
   }
 
-  void _createGroup(){
+  void _createGroup() async{
     // 导航到聊天页面
-    Navigator.push(
+    final shouldRefresh = await Navigator.push(
       context,
       MaterialPageRoute(
           builder: (context) => CreateGroupWidget()),
     );
+    if(shouldRefresh){
+      _fetchGroupList();
+    }
   }
 
   @override
@@ -232,7 +230,7 @@ class _ChatPageState extends State<MultiGroupChatPage> {
    Future<void> _fetchGroupList() async {
      try {
        final response = await http.get(
-         Uri.parse("http://106.15.46.229:8080/group/list"),
+         Uri.parse("http://$ip:8080/group/list"),
        );
        logger.d(response);
 
