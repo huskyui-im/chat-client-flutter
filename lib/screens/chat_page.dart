@@ -10,6 +10,8 @@ import '../constants/config_constants.dart';
 
 import 'package:http/http.dart' as http;
 
+import '../model/message.dart';
+
 class ChatPage extends StatefulWidget {
   final String group;
 
@@ -22,7 +24,7 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final List<String> _messageList = [];
+  final List<Message> _messageList = [];
   late WebSocketManager _webSocketManager; // WebSocket 管理器实例
   late TextEditingController _controller;
   final Logger logger = Logger();
@@ -41,8 +43,8 @@ class _ChatPageState extends State<ChatPage> {
       if (mounted) {
         setState(() {
           final jsonMessage = json.decode(message);
-          final messageValue = jsonMessage['message'];
-          _messageList.add(messageValue); // 本地添加消息到列表
+          var  messageModel = Message.fromJson(jsonMessage);
+          _messageList.add(messageModel); // 本地添加消息到列表
         });
       }
     });
@@ -60,8 +62,10 @@ class _ChatPageState extends State<ChatPage> {
             child: ListView.builder(
               itemCount: _messageList.length,
               itemBuilder: (context, index) {
+                Message message = _messageList[index];
                 return ListTile(
-                  title: Text(_messageList[index]), // 显示消息
+                  title: message.opType == OpTypeConstants.SEND_MSG ? Text(message.message) : null,
+                  leading: message.opType == OpTypeConstants.SEND_IMAGE ? Image.network(message.message,width: 30,height: 30,) : null,// 显示消息
                 );
               },
             ),
@@ -126,8 +130,7 @@ class _ChatPageState extends State<ChatPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(await response.stream.bytesToString());
         final imgUrl = data['data'];
-        // todo 发送图片信息&服务端支持&客户端支持渲染
-        _webSocketManager.sendMessage();
+        _webSocketManager.sendMessage(OpTypeConstants.SEND_IMAGE, widget.group, "$image_prefix$imgUrl");
       } else {
         print("图片上传失败：${response.statusCode}");
       }

@@ -6,4 +6,6 @@ class OpTypeConstants {
   static int SEND_MSG = 3;
 
   static int CREATE_GROUP = 4;
+
+  static int SEND_IMAGE = 5;
 }
