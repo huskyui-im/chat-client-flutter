@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:chat_client/OpTypeConstants.dart';
-import 'package:chat_client/websocket.dart';
+import 'package:chat_client/constants/op_type_constants.dart';
+import 'package:chat_client/websocket/websocket.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 
-import 'ConfigConstants.dart';
+import '../constants/config_constants.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -67,9 +67,9 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
           Padding(
-              padding: EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(8.0),
               child: IconButton(
-                icon: Icon(Icons.upload),
+                icon: const Icon(Icons.upload),
                 onPressed: _pickImage, // 选择图片
               )),
           Padding(
@@ -79,7 +79,7 @@ class _ChatPageState extends State<ChatPage> {
                 Expanded(
                   child: TextField(
                     controller: _controller, // 绑定输入框控制器
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: '输入消息...',
                       border: OutlineInputBorder(),
                     ),
@@ -122,9 +122,12 @@ class _ChatPageState extends State<ChatPage> {
       ));
 
       var response = await request.send();
-
+      print(response);
       if (response.statusCode == 200) {
-        print("图片上传成功！");
+        final data = jsonDecode(await response.stream.bytesToString());
+        final imgUrl = data['data'];
+        // todo 发送图片信息&服务端支持&客户端支持渲染
+        _webSocketManager.sendMessage();
       } else {
         print("图片上传失败：${response.statusCode}");
       }

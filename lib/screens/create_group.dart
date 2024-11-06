@@ -1,8 +1,8 @@
-import 'package:chat_client/websocket.dart';
+import 'package:chat_client/websocket/websocket.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'OpTypeConstants.dart';
+import '../constants/op_type_constants.dart';
 
 
 class CreateGroupWidget extends StatefulWidget {

@@ -1,13 +1,13 @@
-import 'package:chat_client/ConfigConstants.dart';
-import 'package:chat_client/CreateGroup.dart';
-import 'package:chat_client/websocket.dart';
+import 'package:chat_client/constants/config_constants.dart';
+import 'package:chat_client/screens/create_group.dart';
+import 'package:chat_client/websocket/websocket.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:logger/logger.dart';
 
-import 'ChatPage.dart';
+import 'screens/chat_page.dart';
 
 void main() {
   runApp(const MyApp());
