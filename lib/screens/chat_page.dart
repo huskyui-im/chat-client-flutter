@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:chat_client/constants/op_type_constants.dart';
+import 'package:chat_client/screens/message_bubble.dart';
 import 'package:chat_client/websocket/websocket.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -63,10 +64,7 @@ class _ChatPageState extends State<ChatPage> {
               itemCount: _messageList.length,
               itemBuilder: (context, index) {
                 Message message = _messageList[index];
-                return ListTile(
-                  title: message.opType == OpTypeConstants.SEND_MSG ? Text(message.message) : null,
-                  leading: message.opType == OpTypeConstants.SEND_IMAGE ? Image.network(message.message,width: 30,height: 30,) : null,// 显示消息
-                );
+                return MessageBubble(message: message);
               },
             ),
           ),
