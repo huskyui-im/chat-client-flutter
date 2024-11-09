@@ -1,5 +1,6 @@
 import 'package:chat_client/constants/config_constants.dart';
 import 'package:chat_client/screens/create_group.dart';
+import 'package:chat_client/screens/register_page.dart';
 import 'package:chat_client/websocket/websocket.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -118,14 +119,24 @@ class _LoginPageState extends State<LoginPage> {
                 controller: _usernameController,
                 decoration: InputDecoration(labelText: 'Token'),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _isLoading
-                  ? CircularProgressIndicator()
-                  : ElevatedButton(onPressed: _login, child: Text('Login')),
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(onPressed: _login, child: const Text('登录')),
+              const SizedBox(height: 20),
+              ElevatedButton(onPressed: _register, child: const Text("注册"))
             ],
           ),
         ),
       ),
+    );
+  }
+
+  void _register() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => RegisterPage()),
     );
   }
 }
