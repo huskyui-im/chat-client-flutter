@@ -1,6 +1,7 @@
 import 'package:chat_client/constants/config_constants.dart';
 import 'package:chat_client/screens/create_group.dart';
 import 'package:chat_client/screens/register_page.dart';
+import 'package:chat_client/storage/hive_storage.dart';
 import 'package:chat_client/websocket/websocket.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -11,6 +12,7 @@ import 'package:logger/logger.dart';
 import 'screens/chat_page.dart';
 
 void main() {
+  initHive();
   runApp(const MyApp());
 }
 
@@ -36,6 +38,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _token;
   final logger = Logger();
@@ -44,7 +47,8 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     final username = _usernameController.text;
-    if (username.isEmpty) {
+    final password = _passwordController.text;
+    if (username.isEmpty || password.isEmpty) {
       _showError("请输入用户名");
       return;
     }
@@ -55,13 +59,15 @@ class _LoginPageState extends State<LoginPage> {
       final response = await http.post(
         Uri.parse("http://$ip:8080/auth/login"),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username}),
+        body: jsonEncode({'username': username,'password':password}),
       );
       logger.d(response);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final token = data['data'];
+        final token = data['data']['token'];
+        final username = data['data']['username'];
+        saveCurrentUserInfo(username);
         setState(() {
           _token = token;
         });
@@ -117,7 +123,12 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               TextField(
                 controller: _usernameController,
-                decoration: InputDecoration(labelText: 'Token'),
+                decoration: const InputDecoration(labelText: '用户名'),
+              ),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: '密码'),
+                obscureText: true,
               ),
               const SizedBox(height: 20),
               _isLoading

@@ -28,10 +28,10 @@ class _RegisterScreenState extends State<RegisterPage> {
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-        setState(() {
-          _image = File(pickedFile.path);
-        });
-        await uploadImage(pickedFile);
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+      await uploadImage(pickedFile);
     }
   }
 
@@ -74,16 +74,22 @@ class _RegisterScreenState extends State<RegisterPage> {
     final response = await http.post(
       Uri.parse("http://$ip:8080/auth/register"),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'username': _usernameController.text, 'password': _passwordController.text, 'avatar': _imagePath}),
+      body: jsonEncode({
+        'username': _usernameController.text,
+        'password': _passwordController.text,
+        'avatar': _imagePath
+      }),
     );
     logger.d(response);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       logger.d(data);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('注册成功！')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('注册成功！')));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('注册失败！')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('注册失败！')));
     }
 
     // 这里可以添加实际的请求逻辑，比如通过HTTP包发送请求
@@ -99,7 +105,10 @@ class _RegisterScreenState extends State<RegisterPage> {
     // todo 跳转到登录页面
 
     // 显示成功提示
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('注册成功！')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('注册成功！')));
+    // 在这里执行返回操作
+    Navigator.pop(context, true);
   }
 
   @override
@@ -128,11 +137,11 @@ class _RegisterScreenState extends State<RegisterPage> {
               _image == null
                   ? Text('头像未选择')
                   : Image.network(
-                _image!.path,
-                height: 100,
-                width: 100,
-                fit: BoxFit.cover,
-              ),
+                      _image!.path,
+                      height: 100,
+                      width: 100,
+                      fit: BoxFit.cover,
+                    ),
               SizedBox(height: 8),
               ElevatedButton(
                 onPressed: _pickImage,
@@ -142,9 +151,9 @@ class _RegisterScreenState extends State<RegisterPage> {
               _isLoading
                   ? CircularProgressIndicator()
                   : ElevatedButton(
-                onPressed: _register,
-                child: Text('注册'),
-              ),
+                      onPressed: _register,
+                      child: Text('注册'),
+                    ),
             ],
           ),
         ),

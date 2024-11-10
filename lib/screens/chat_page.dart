@@ -12,6 +12,7 @@ import '../constants/config_constants.dart';
 import 'package:http/http.dart' as http;
 
 import '../model/message.dart';
+import '../storage/hive_storage.dart';
 
 class ChatPage extends StatefulWidget {
   final String group;
@@ -31,12 +32,14 @@ class _ChatPageState extends State<ChatPage> {
   final Logger logger = Logger();
   final ImagePicker _picker = ImagePicker();
   XFile? _image;
+  late String currentUser = "";
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController();
     _webSocketManager = WebSocketManager();
+
 
     _webSocketManager.sendMessage(OpTypeConstants.JOIN_GROUP, widget.group, "");
 
@@ -49,6 +52,18 @@ class _ChatPageState extends State<ChatPage> {
         });
       }
     });
+
+    fetchCurrentUser();
+  }
+
+  // 异步辅助方法
+  Future<void> fetchCurrentUser() async {
+    String user = await getCurrentUser();
+    if(mounted) {
+      setState(() {
+        currentUser = user;
+      });
+    }
   }
 
   @override
@@ -64,7 +79,7 @@ class _ChatPageState extends State<ChatPage> {
               itemCount: _messageList.length,
               itemBuilder: (context, index) {
                 Message message = _messageList[index];
-                return MessageBubble(message: message);
+                return MessageBubble(message: message,currentUser: currentUser,);
               },
             ),
           ),
