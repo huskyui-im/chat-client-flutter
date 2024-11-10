@@ -40,14 +40,13 @@ class _ChatPageState extends State<ChatPage> {
     _controller = TextEditingController();
     _webSocketManager = WebSocketManager();
 
-
     _webSocketManager.sendMessage(OpTypeConstants.JOIN_GROUP, widget.group, "");
 
     _webSocketManager.messageStream.listen((message) {
       if (mounted) {
         setState(() {
           final jsonMessage = json.decode(message);
-          var  messageModel = Message.fromJson(jsonMessage);
+          var messageModel = Message.fromJson(jsonMessage);
           _messageList.add(messageModel); // 本地添加消息到列表
         });
       }
@@ -59,7 +58,7 @@ class _ChatPageState extends State<ChatPage> {
   // 异步辅助方法
   Future<void> fetchCurrentUser() async {
     String user = await getCurrentUser();
-    if(mounted) {
+    if (mounted) {
       setState(() {
         currentUser = user;
       });
@@ -79,36 +78,73 @@ class _ChatPageState extends State<ChatPage> {
               itemCount: _messageList.length,
               itemBuilder: (context, index) {
                 Message message = _messageList[index];
-                return MessageBubble(message: message,currentUser: currentUser,);
+                return MessageBubble(
+                  message: message,
+                  currentUser: currentUser,
+                );
               },
             ),
           ),
           Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: IconButton(
-                icon: const Icon(Icons.upload),
-                onPressed: _pickImage, // 选择图片
-              )),
-          Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller, // 绑定输入框控制器
-                    decoration: const InputDecoration(
-                      hintText: '输入消息...',
-                      border: OutlineInputBorder(),
+                Row(
+                  children: [
+                    Expanded(
+                        child: TextField(
+                      controller: _controller, // 绑定输入框控制器,
+                      decoration: InputDecoration(
+                          hintText: "请输入消息",
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10))),
+                      maxLines: null,
+                    )),
+                    const SizedBox(width: 10),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: _sendMessage,
+                      child: const Text("发送"), // 发送消息
                     ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: _sendMessage, // 发送消息
-                ),
+                    const SizedBox(width: 10),
+                    IconButton(
+                        onPressed: _showBottomSheet,
+                        icon: const Icon(Icons.add_sharp))
+                  ],
+                )
               ],
             ),
-          ),
+          )
+
+          // Padding(
+          //     padding: const EdgeInsets.all(8.0),
+          //     child: IconButton(
+          //       icon: const Icon(Icons.upload),
+          //       onPressed: _pickImage, // 选择图片
+          //     )),
+          // Padding(
+          //   padding: const EdgeInsets.all(8.0),
+          //   child: Row(
+          //     children: [
+          //       Expanded(
+          //         child: TextField(
+          //           controller: _controller, // 绑定输入框控制器
+          //           decoration: const InputDecoration(
+          //             hintText: '输入消息...',
+          //             border: OutlineInputBorder(),
+          //           ),
+          //         ),
+          //       ),
+          //       IconButton(
+          //         icon: Icon(Icons.send),
+          //         onPressed: _sendMessage, // 发送消息
+          //       ),
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );
@@ -123,7 +159,6 @@ class _ChatPageState extends State<ChatPage> {
       await uploadImage(image);
     }
   }
-
 
   Future<void> uploadImage(XFile image) async {
     String url = "http://$ip:8080/upload/image";
@@ -143,7 +178,8 @@ class _ChatPageState extends State<ChatPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(await response.stream.bytesToString());
         final imgUrl = data['data'];
-        _webSocketManager.sendMessage(OpTypeConstants.SEND_IMAGE, widget.group, "$image_prefix$imgUrl");
+        _webSocketManager.sendMessage(
+            OpTypeConstants.SEND_IMAGE, widget.group, "$image_prefix$imgUrl");
       } else {
         print("图片上传失败：${response.statusCode}");
       }
@@ -160,5 +196,24 @@ class _ChatPageState extends State<ChatPage> {
           OpTypeConstants.SEND_MSG, widget.group, text); // 发送消息到服务器
       _controller.clear(); // 清空输入框
     }
+  }
+
+  void _showBottomSheet() {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Wrap(
+            children: [
+              ListTile(
+              leading: const Icon(Icons.upload),
+                title: Text("选择图片"),
+                onTap: (){
+                  Navigator.pop(context);
+                  _pickImage();
+                },
+              )
+            ],
+          );
+        });
   }
 }
