@@ -16,5 +16,16 @@ Future<String> getCurrentUser() async {
   return userName;
 }
 
+Future<String> getAvatarCache(String userId) async {
+  var box = await Hive.openBox('avatar_cache');
+  String userName = box.get(userId, defaultValue: '');
+  return userName;
+}
+
+Future<void> putAvatarCache(String userId,String avatar) async {
+  var box = await Hive.openBox('avatar_cache');
+  await box.put(userId, avatar);
+}
+
 
 
