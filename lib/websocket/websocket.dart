@@ -31,6 +31,16 @@ class WebSocketManager {
     channel.sink.add(jsonEncode(msg));
   }
 
+  void sendMessageWithExt(int opType,String group,String message,Map<String,dynamic> ext){
+    final msg = {
+      "opType":opType,
+      "group":group,
+      "message":message,
+      "extendData":ext,
+    };
+    channel.sink.add(jsonEncode(msg));
+  }
+
   Stream<String> get messageStream => _messageController.stream;
 
   void dispose(){

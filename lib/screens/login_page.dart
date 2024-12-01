@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:chat_client/screens/register_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
 
@@ -20,6 +21,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   String? _token;
   final logger = Logger();
+  final FocusNode _focusNode = FocusNode();
 
   // 登录请求
 
@@ -107,13 +109,16 @@ class _LoginPageState extends State<LoginPage> {
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: '密码'),
                 obscureText: true,
+                onSubmitted: (_){
+                  _login();
+                },
               ),
               const SizedBox(height: 20),
               _isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(onPressed: _login, child: const Text('登录')),
               const SizedBox(height: 20),
-              ElevatedButton(onPressed: _register, child: const Text("注册"))
+              ElevatedButton(onPressed: _register, child: const Text("注册")),
             ],
           ),
         ),

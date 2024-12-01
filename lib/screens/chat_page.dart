@@ -98,6 +98,9 @@ class _ChatPageState extends State<ChatPage> {
                           hintText: "请输入消息",
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10))),
+                      onSubmitted: (_){
+                        _sendMessage();
+                      },
                       maxLines: null,
                     )),
                     const SizedBox(width: 10),
@@ -118,33 +121,6 @@ class _ChatPageState extends State<ChatPage> {
               ],
             ),
           )
-
-          // Padding(
-          //     padding: const EdgeInsets.all(8.0),
-          //     child: IconButton(
-          //       icon: const Icon(Icons.upload),
-          //       onPressed: _pickImage, // 选择图片
-          //     )),
-          // Padding(
-          //   padding: const EdgeInsets.all(8.0),
-          //   child: Row(
-          //     children: [
-          //       Expanded(
-          //         child: TextField(
-          //           controller: _controller, // 绑定输入框控制器
-          //           decoration: const InputDecoration(
-          //             hintText: '输入消息...',
-          //             border: OutlineInputBorder(),
-          //           ),
-          //         ),
-          //       ),
-          //       IconButton(
-          //         icon: Icon(Icons.send),
-          //         onPressed: _sendMessage, // 发送消息
-          //       ),
-          //     ],
-          //   ),
-          // ),
         ],
       ),
     );

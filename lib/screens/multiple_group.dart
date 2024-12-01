@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:chat_client/model/group_info.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -20,7 +21,7 @@ class MultiGroupChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<MultiGroupChatPage> {
-  List<String> _groupMessages = [];
+  List<GroupInfo> _groupMessages = [];
 
   final logger = Logger();
 
@@ -83,12 +84,17 @@ class _ChatPageState extends State<MultiGroupChatPage> {
                 child: ListView.builder(
               itemCount: _groupMessages.length,
               itemBuilder: (context, index) {
-                String group = _groupMessages.elementAt(index);
+                String group = _groupMessages.elementAt(index).name;
+                String avatar = _groupMessages.elementAt(index).avatar;
                 return Card(
                   elevation: 4,
                   margin: EdgeInsets.symmetric(vertical: 8),
                   child: ListTile(
                     contentPadding: EdgeInsets.all(8),
+                    leading: CircleAvatar(
+                      radius: 24,
+                      backgroundImage: NetworkImage(image_prefix+avatar),
+                    ),
                     title: Text(
                       group,
                       style:
@@ -119,7 +125,9 @@ class _ChatPageState extends State<MultiGroupChatPage> {
         logger.d(data);
         List<dynamic> groupList = data['data'];
         setState(() {
-          _groupMessages = groupList.cast<String>();
+          print(groupList);
+          _groupMessages = groupList.map((groupData)=>GroupInfo.fromJson(groupData)).toList();
+          print(_groupMessages);
         });
       }
     } catch (e) {
