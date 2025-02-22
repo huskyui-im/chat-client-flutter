@@ -29,7 +29,7 @@ class _ChatPageState extends State<MultiGroupChatPage> {
   void initState() {
     super.initState();
     // init webSocket instance
-    WebSocketManager().connect('ws://$ip:8888/ws?token=${widget.token}');
+    WebSocketManager().connect('$ws_server?token=${widget.token}');
     // fetch group list
     _fetchGroupList();
   }
@@ -115,7 +115,7 @@ class _ChatPageState extends State<MultiGroupChatPage> {
   Future<void> _fetchGroupList() async {
     try {
       final response = await http.get(
-        Uri.parse("http://$ip:8080/group/list"),
+        Uri.parse("$http_server/group/list"),
       );
       logger.d(response);
 

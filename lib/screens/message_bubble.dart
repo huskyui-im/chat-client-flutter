@@ -26,7 +26,7 @@ class MessageBubble extends StatelessWidget {
       return cacheAvatar;
     }
 
-    String url = "http://$ip:8080/user/info?userId=$userId";
+    String url = "$http_server/user/info?userId=$userId";
     try {
       var request = http.MultipartRequest("GET", Uri.parse(url));
       var response = await request.send();

@@ -36,7 +36,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       final response = await http.post(
-        Uri.parse("http://$ip:8080/auth/login"),
+        Uri.parse("$http_server/auth/login"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': username, 'password': password}),
       );

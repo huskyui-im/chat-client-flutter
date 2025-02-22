@@ -137,7 +137,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> uploadImage(XFile image) async {
-    String url = "http://$ip:8080/upload/image";
+    String url = "$http_server/upload/image";
     try {
       var request = http.MultipartRequest("POST", Uri.parse(url));
 

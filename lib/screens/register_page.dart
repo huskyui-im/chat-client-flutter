@@ -36,7 +36,7 @@ class _RegisterScreenState extends State<RegisterPage> {
   }
 
   Future<void> uploadImage(XFile image) async {
-    String url = "http://$ip:8080/upload/image";
+    String url = "$http_server/upload/image";
     try {
       var request = http.MultipartRequest("POST", Uri.parse(url));
 
@@ -72,7 +72,7 @@ class _RegisterScreenState extends State<RegisterPage> {
 
     // 模拟发送请求，延迟2秒
     final response = await http.post(
-      Uri.parse("http://$ip:8080/auth/register"),
+      Uri.parse("$http_server/auth/register"),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'username': _usernameController.text,

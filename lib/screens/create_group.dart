@@ -168,7 +168,7 @@ class _CreateGroupState extends State<CreateGroupWidget> {
   }
 
   Future<void> uploadImage(XFile image) async {
-    String url = "http://$ip:8080/upload/image";
+    String url = "$http_server/upload/image";
     try {
       var request = http.MultipartRequest("POST", Uri.parse(url));
       var bytes = await image.readAsBytes();
