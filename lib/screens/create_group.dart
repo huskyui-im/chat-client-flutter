@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 
 import '../constants/config_constants.dart';
+import '../constants/op_type_constants.dart';
+import '../websocket/websocket.dart';
 
 class CreateGroupWidget extends StatefulWidget {
   @override
@@ -14,11 +16,18 @@ class CreateGroupWidget extends StatefulWidget {
 
 class _CreateGroupState extends State<CreateGroupWidget> {
   final TextEditingController _groupNameController = TextEditingController();
+  late WebSocketManager webSocketManager;
   File? _image;
   String _imagePath = "";
   bool _isUploading = false;
   bool _isCreating = false;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    webSocketManager = WebSocketManager();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,8 +108,8 @@ class _CreateGroupState extends State<CreateGroupWidget> {
                 : _image == null
                 ? Icon(Icons.camera_alt, size: 40, color: Colors.white)
                 : ClipOval(
-              child: Image.file(
-                _image!,
+              child: Image.network(
+                _image!.path,
                 fit: BoxFit.cover,
               ),
             ),
@@ -188,10 +197,15 @@ class _CreateGroupState extends State<CreateGroupWidget> {
     }
 
     setState(() => _isCreating = true);
+    var ext = {
+      "avatar": _imagePath,
+    };
+
+
 
     try {
       // 这里替换为实际的创建群组逻辑
-      await Future.delayed(Duration(seconds: 1)); // 模拟网络请求
+      webSocketManager.sendMessageWithExt(OpTypeConstants.CREATE_GROUP, _groupNameController.text, "",ext);
       Navigator.pop(context, true);
     } finally {
       setState(() => _isCreating = false);
