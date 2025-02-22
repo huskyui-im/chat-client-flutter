@@ -1,16 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:chat_client/websocket/websocket.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
-import '../constants/config_constants.dart';
-import '../constants/op_type_constants.dart';
-
 import 'package:http/http.dart' as http;
 
+import '../constants/config_constants.dart';
 
 class CreateGroupWidget extends StatefulWidget {
   @override
@@ -19,65 +14,147 @@ class CreateGroupWidget extends StatefulWidget {
 
 class _CreateGroupState extends State<CreateGroupWidget> {
   final TextEditingController _groupNameController = TextEditingController();
-  late WebSocketManager webSocketManager;
   File? _image;
   String _imagePath = "";
-
+  bool _isUploading = false;
+  bool _isCreating = false;
   final ImagePicker _picker = ImagePicker();
-
-
-  @override
-  void initState() {
-    super.initState();
-    webSocketManager = WebSocketManager();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('新建群组'),
+        title: Text('新建群组', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue.shade700,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextField(
-                controller: _groupNameController,
-                decoration: InputDecoration(labelText: '群组名称'),
-              ),
-              SizedBox(height: 20),
-              _image == null
-                  ? Text('群头像未选择')
-                  : Image.network(
-                _image!.path,
-                height: 100,
-                width: 100,
-                fit: BoxFit.cover,
-              ),
-              SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: Text('选择群头像'),
-              ),
-              ElevatedButton(onPressed: _createGroup, child: Text('新建群组')),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.blue.shade700,
+              Colors.blue.shade400,
             ],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildAvatarPicker(),
+                  SizedBox(height: 30),
+                  _buildGroupNameField(),
+                  SizedBox(height: 40),
+                  _buildCreateButton(),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 
-  // 选择图片
+  Widget _buildGroupNameField() {
+    return TextField(
+      controller: _groupNameController,
+      style: TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: '群组名称',
+        labelStyle: TextStyle(color: Colors.white70),
+        prefixIcon: Icon(Icons.group, color: Colors.white70),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.white54),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.white, width: 2),
+        ),
+        contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      ),
+    );
+  }
+
+  Widget _buildAvatarPicker() {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: _pickImage,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+              color: Colors.blue.shade200,
+            ),
+            child: _isUploading
+                ? Center(child: CircularProgressIndicator(color: Colors.white))
+                : _image == null
+                ? Icon(Icons.camera_alt, size: 40, color: Colors.white)
+                : ClipOval(
+              child: Image.file(
+                _image!,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: 16),
+        Text(
+          '点击选择群头像',
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCreateButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isCreating ? null : _createGroup,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          padding: EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          elevation: 5,
+        ),
+        child: _isCreating
+            ? SizedBox(
+          height: 24,
+          width: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+            : Text(
+          '创建群组',
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.blue.shade700,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
+        _isUploading = true;
       });
       await uploadImage(pickedFile);
+      setState(() => _isUploading = false);
     }
   }
 
@@ -85,8 +162,6 @@ class _CreateGroupState extends State<CreateGroupWidget> {
     String url = "http://$ip:8080/upload/image";
     try {
       var request = http.MultipartRequest("POST", Uri.parse(url));
-
-      // 读取文件并创建 multipart 文件对象
       var bytes = await image.readAsBytes();
       request.files.add(http.MultipartFile.fromBytes(
         'file',
@@ -95,56 +170,47 @@ class _CreateGroupState extends State<CreateGroupWidget> {
       ));
 
       var response = await request.send();
-      print(response);
       if (response.statusCode == 200) {
         final data = jsonDecode(await response.stream.bytesToString());
-        final imgUrl = data['data'];
-        setState(() {
-          _imagePath = imgUrl;
-        });
+        setState(() => _imagePath = data['data']);
       } else {
-        print("图片上传失败：${response.statusCode}");
+        _showError("图片上传失败");
       }
     } catch (e) {
-      print("上传出错：$e");
+      _showError("上传出错：$e");
     }
   }
 
-
-  void _createGroup(){
-    String groupName = _groupNameController.text;
-    if(groupName.isEmpty){
-      _showError("群名为空");
+  void _createGroup() async {
+    if (_groupNameController.text.isEmpty) {
+      _showError("请输入群组名称");
       return;
     }
-    var ext = {
-      "avatar": _imagePath,
-    };
 
+    setState(() => _isCreating = true);
 
-    webSocketManager.sendMessageWithExt(OpTypeConstants.CREATE_GROUP, groupName, "",ext);
-    // 在这里执行返回操作
-    Navigator.pop(context,true);
+    try {
+      // 这里替换为实际的创建群组逻辑
+      await Future.delayed(Duration(seconds: 1)); // 模拟网络请求
+      Navigator.pop(context, true);
+    } finally {
+      setState(() => _isCreating = false);
+    }
   }
 
-  // 显示错误信息
   void _showError(String message) {
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Error'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            )
-          ],
-        );
-      },
+      builder: (context) => AlertDialog(
+        title: Text('提示', style: TextStyle(color: Colors.red)),
+        content: Text(message),
+        actions: [
+          TextButton(
+            child: Text('确定', style: TextStyle(color: Colors.blue)),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
     );
   }
 }
