@@ -24,6 +24,203 @@ class _RegisterScreenState extends State<RegisterPage> {
 
   final ImagePicker _picker = ImagePicker();
 
+  final _formKey = GlobalKey<FormState>();
+  final _focusPassword = FocusNode();
+
+
+
+
+
+  @override
+  void dispose() {
+    _focusPassword.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [
+              Colors.deepPurple.shade900,
+              Colors.deepPurple.shade800,
+              Colors.indigo.shade900,
+            ]
+                : [
+              Colors.purple.shade50,
+              Colors.blue.shade50,
+              Colors.white,
+            ],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(24),
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '创建账号',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      SizedBox(height: 32),
+                      _buildAvatarSection(),
+                      SizedBox(height: 24),
+                      TextFormField(
+                        controller: _usernameController,
+                        decoration: InputDecoration(
+                          labelText: '用户名',
+                          prefixIcon: Icon(Icons.person_outline),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        textInputAction: TextInputAction.next,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return '请输入用户名';
+                          }
+                          return null;
+                        },
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).requestFocus(_focusPassword),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        focusNode: _focusPassword,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: '密码',
+                          prefixIcon: Icon(Icons.lock_outline),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return '请输入密码';
+                          }
+                          if (value.length < 6) {
+                            return '密码至少6位';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            backgroundColor: theme.colorScheme.primary,
+                          ),
+                          onPressed: _isLoading ? null : _register,
+                          child: Text(
+                            '立即注册',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('已有账号？'),
+                            SizedBox(width: 4),
+                            Text(
+                              '立即登录',
+                              style: TextStyle(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarSection() {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: _pickImage,
+          child: CircleAvatar(
+            radius: 48,
+            backgroundColor: Colors.grey.shade200,
+            backgroundImage: _imagePath.isNotEmpty
+                ? NetworkImage(_imagePath)
+                : null,
+            child: _imagePath.isEmpty
+                ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.camera_alt, size: 32, color: Colors.grey),
+                SizedBox(height: 4),
+                Text(
+                  '添加头像',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            )
+                : null,
+          ),
+        ),
+        SizedBox(height: 8),
+        if (_image != null)
+          TextButton.icon(
+            onPressed: _pickImage,
+            icon: Icon(Icons.refresh, size: 16),
+            label: Text('更换头像'),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+      ],
+    );
+  }
+
+
   // 选择图片
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -109,55 +306,5 @@ class _RegisterScreenState extends State<RegisterPage> {
         .showSnackBar(SnackBar(content: Text('注册成功！')));
     // 在这里执行返回操作
     Navigator.pop(context, true);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Register'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(labelText: '用户名'),
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(labelText: '密码'),
-                obscureText: true,
-              ),
-              SizedBox(height: 16),
-              _image == null
-                  ? Text('头像未选择')
-                  : Image.network(
-                      _image!.path,
-                      height: 100,
-                      width: 100,
-                      fit: BoxFit.cover,
-                    ),
-              SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: Text('选择头像'),
-              ),
-              SizedBox(height: 20),
-              _isLoading
-                  ? CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: _register,
-                      child: Text('注册'),
-                    ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
